@@ -2,8 +2,8 @@ import { useState, useCallback } from "react";
 import {
   getDay,
   getAllDays,
-  cyclePrayerStatus,
-  markMadeUp,
+  toggleFard,
+  toggleSunnah,
   setExtraPrayers,
   getStats,
   getQadaDebt,
@@ -20,17 +20,17 @@ export function useTracker() {
   const todayRecord = getDay(today);
   const allDays = getAllDays();
   const weekDays = getCurrentWeekDays();
-  const qadaDebt = getQadaDebt();
+  const debt = getQadaDebt();
   const weekStats = getStats(weekDays);
   const allTimeStats = getStats(allDays);
 
-  const toggle = useCallback((date: string, prayer: PrayerName) => {
-    cyclePrayerStatus(date, prayer);
+  const tapFard = useCallback((date: string, prayer: PrayerName) => {
+    toggleFard(date, prayer);
     bump();
   }, []);
 
-  const makeUp = useCallback((date: string, prayer: PrayerName) => {
-    markMadeUp(date, prayer);
+  const tapSunnah = useCallback((date: string, prayer: PrayerName) => {
+    toggleSunnah(date, prayer);
     bump();
   }, []);
 
@@ -40,7 +40,6 @@ export function useTracker() {
     bump();
   }, []);
 
-  // Force re-read on revision change
   void revision;
 
   return {
@@ -48,11 +47,11 @@ export function useTracker() {
     todayRecord,
     allDays,
     weekDays,
-    qadaDebt,
+    debt,
     weekStats,
     allTimeStats,
-    toggle,
-    makeUp,
+    tapFard,
+    tapSunnah,
     addExtra,
   };
 }

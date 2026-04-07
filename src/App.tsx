@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTracker } from "./hooks/useTracker";
 import { TodayCard } from "./components/TodayCard";
 import { WeekView } from "./components/WeekView";
-import { MissedCounter } from "./components/MissedCounter";
+import { DebtBanner } from "./components/MissedCounter";
 import { HistoryView } from "./components/HistoryView";
 
 type Tab = "today" | "week" | "history";
@@ -13,13 +13,11 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-emerald-700 text-white px-5 pt-6 pb-12 text-center">
         <h1 className="text-xl font-bold tracking-tight">Salah Tracker</h1>
-        <p className="text-emerald-200 text-sm mt-0.5">Track. Make up. Stay consistent.</p>
+        <p className="text-emerald-200 text-sm mt-0.5">Track. Stay consistent.</p>
       </header>
 
-      {/* Tab bar */}
       <nav className="flex justify-center -mt-5 mb-4 px-4">
         <div className="flex bg-white rounded-xl shadow-sm border border-gray-100 p-1 gap-1">
           {(["today", "week", "history"] as Tab[]).map((t) => (
@@ -38,21 +36,15 @@ function App() {
         </div>
       </nav>
 
-      {/* Content */}
       <main className="max-w-md mx-auto px-4 pb-8 space-y-4">
-        {/* Missed counter - always visible */}
-        <MissedCounter
-          rawMissed={tracker.qadaDebt.rawMissed}
-          extraCredit={tracker.qadaDebt.extraCredit}
-          netDebt={tracker.qadaDebt.netDebt}
-        />
+        <DebtBanner {...tracker.debt} />
 
         {tab === "today" && (
           <TodayCard
             record={tracker.todayRecord}
-            onToggle={(prayer) => tracker.toggle(tracker.today, prayer)}
-            onMakeUp={(prayer) => tracker.makeUp(tracker.today, prayer)}
-            onExtraChange={(delta) => tracker.addExtra(tracker.today, delta)}
+            onTapFard={(p) => tracker.tapFard(tracker.today, p)}
+            onTapSunnah={(p) => tracker.tapSunnah(tracker.today, p)}
+            onExtraChange={(d) => tracker.addExtra(tracker.today, d)}
           />
         )}
 
@@ -60,15 +52,15 @@ function App() {
           <WeekView
             days={tracker.weekDays}
             stats={tracker.weekStats}
-            onToggle={tracker.toggle}
+            onTapFard={tracker.tapFard}
           />
         )}
 
         {tab === "history" && (
           <HistoryView
             days={tracker.allDays}
-            onToggle={tracker.toggle}
-            onMakeUp={tracker.makeUp}
+            onTapFard={tracker.tapFard}
+            onTapSunnah={tracker.tapSunnah}
           />
         )}
       </main>

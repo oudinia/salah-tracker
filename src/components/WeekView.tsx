@@ -4,8 +4,8 @@ import { PrayerRow } from "./PrayerRow";
 
 interface WeekViewProps {
   days: DayRecord[];
-  stats: { total: number; done: number; missed: number; madeUp: number; completionRate: number };
-  onToggle: (date: string, prayer: PrayerName) => void;
+  stats: { fardTotal: number; fardDone: number; fardNotDone: number; sunnahDone: number; completionRate: number };
+  onTapFard: (date: string, prayer: PrayerName) => void;
 }
 
 function shortDay(dateStr: string): string {
@@ -16,7 +16,7 @@ function shortDate(dateStr: string): string {
   return new Date(dateStr + "T12:00:00").toLocaleDateString("en", { day: "numeric" });
 }
 
-export function WeekView({ days, stats, onToggle }: WeekViewProps) {
+export function WeekView({ days, stats, onTapFard }: WeekViewProps) {
   const pct = Math.round(stats.completionRate * 100);
 
   return (
@@ -25,17 +25,15 @@ export function WeekView({ days, stats, onToggle }: WeekViewProps) {
         <div>
           <h2 className="text-lg font-bold text-gray-900">This Week</h2>
           <p className="text-sm text-gray-400">
-            {stats.done + stats.madeUp} done · {stats.missed} missed
+            {stats.fardDone} of {stats.fardTotal} fard
+            {stats.sunnahDone > 0 && ` · ${stats.sunnahDone} sunnah`}
           </p>
         </div>
-        <div className="flex items-center gap-1">
-          <span className={`text-2xl font-bold ${pct >= 80 ? "text-emerald-600" : pct >= 50 ? "text-amber-500" : "text-red-500"}`}>
-            {pct}%
-          </span>
+        <div className={`text-2xl font-bold ${pct >= 80 ? "text-emerald-600" : pct >= 50 ? "text-amber-500" : "text-gray-400"}`}>
+          {pct}%
         </div>
       </div>
 
-      {/* Grid: prayers × days */}
       <div className="px-4 pb-4 overflow-x-auto">
         <table className="w-full text-center text-sm">
           <thead>
@@ -60,8 +58,8 @@ export function WeekView({ days, stats, onToggle }: WeekViewProps) {
                     <div className="flex justify-center">
                       <PrayerRow
                         prayer={prayer}
-                        status={d.prayers[prayer]}
-                        onToggle={() => onToggle(d.date, prayer)}
+                        entry={d.prayers[prayer]}
+                        onTapFard={() => onTapFard(d.date, prayer)}
                         compact
                       />
                     </div>

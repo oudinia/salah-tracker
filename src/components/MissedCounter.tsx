@@ -1,44 +1,49 @@
-interface MissedCounterProps {
-  rawMissed: number;
-  extraCredit: number;
+interface DebtBannerProps {
+  notDone: number;
+  sunnahCredits: number;
+  extraCredits: number;
   netDebt: number;
 }
 
-export function MissedCounter({ rawMissed, extraCredit, netDebt }: MissedCounterProps) {
-  if (netDebt === 0 && rawMissed === 0) {
+export function DebtBanner({ notDone, sunnahCredits, extraCredits, netDebt }: DebtBannerProps) {
+  const totalCredits = sunnahCredits + extraCredits;
+
+  // All fard prayed, no debt at all
+  if (notDone === 0) {
     return (
-      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4 text-center">
-        <div className="text-2xl mb-1">🤲</div>
-        <p className="text-sm font-semibold text-emerald-700">All prayers accounted for</p>
-        <p className="text-xs text-emerald-500 mt-0.5">No missed prayers to make up</p>
+      <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-5 py-4 text-center">
+        <p className="text-sm font-semibold text-emerald-700">All prayers done</p>
+        {totalCredits > 0 && (
+          <p className="text-xs text-emerald-500 mt-0.5">
+            + {totalCredits} nawafil prayed
+          </p>
+        )}
       </div>
     );
   }
 
-  if (netDebt === 0 && rawMissed > 0) {
+  // Debt cleared by nawafil
+  if (netDebt === 0) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 text-center">
-        <div className="text-2xl mb-1">🤲</div>
-        <p className="text-sm font-semibold text-blue-700">Qada debt cleared</p>
-        <p className="text-xs text-blue-500 mt-0.5">
-          {rawMissed} missed — {extraCredit} nawafil credited
+      <div className="bg-sky-50 border border-sky-100 rounded-2xl px-5 py-4 text-center">
+        <p className="text-sm font-semibold text-sky-700">Nawafil cover your balance</p>
+        <p className="text-xs text-sky-500 mt-0.5">
+          {notDone} not yet done — {totalCredits} nawafil credited
         </p>
       </div>
     );
   }
 
+  // Some debt remaining — gentle tone
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 text-center">
-      <div className="text-3xl font-bold text-amber-600">{netDebt}</div>
-      <p className="text-sm font-medium text-amber-700 mt-1">prayers to make up</p>
-      {extraCredit > 0 && (
-        <p className="text-xs text-blue-500 mt-1">
-          {extraCredit} nawafil credited ({rawMissed} missed total)
+    <div className="bg-amber-50/70 border border-amber-100 rounded-2xl px-5 py-4 text-center">
+      <div className="text-2xl font-bold text-amber-600">{netDebt}</div>
+      <p className="text-sm font-medium text-amber-700 mt-0.5">to make up</p>
+      {totalCredits > 0 && (
+        <p className="text-xs text-amber-500 mt-1">
+          {totalCredits} nawafil credited of {notDone} total
         </p>
       )}
-      <p className="text-xs text-amber-500 mt-0.5">
-        Pray extra nawafil or mark past prayers as made up
-      </p>
     </div>
   );
 }

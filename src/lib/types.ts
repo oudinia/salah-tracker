@@ -1,12 +1,15 @@
 export const PRAYERS = ["fajr", "dhuhr", "asr", "maghrib", "isha"] as const;
 export type PrayerName = (typeof PRAYERS)[number];
 
-export type PrayerStatus = "done" | "missed" | "made_up";
+export interface PrayerEntry {
+  fard: boolean;
+  sunnah: boolean;
+}
 
 export interface DayRecord {
   date: string; // YYYY-MM-DD
-  prayers: Record<PrayerName, PrayerStatus>;
-  extra: number; // nawafil / extra prayers that count towards making up missed
+  prayers: Record<PrayerName, PrayerEntry>;
+  extra: number; // additional nawafil beyond the sunnah ratibah
 }
 
 export const PRAYER_LABELS: Record<PrayerName, string> = {
@@ -23,4 +26,13 @@ export const PRAYER_TIMES: Record<PrayerName, string> = {
   asr: "Afternoon",
   maghrib: "Sunset",
   isha: "Night",
+};
+
+/** Sunnah Ratibah — regular voluntary prayers tied to each fard */
+export const SUNNAH_RATIBAH: Record<PrayerName, { before: number; after: number } | null> = {
+  fajr: { before: 2, after: 0 },
+  dhuhr: { before: 4, after: 2 },
+  asr: null, // no sunnah — makruh time
+  maghrib: { before: 0, after: 2 },
+  isha: { before: 0, after: 2 },
 };

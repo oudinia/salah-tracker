@@ -1,35 +1,38 @@
-import type { PrayerName, PrayerStatus } from "../lib/types";
-import { PRAYER_LABELS, PRAYER_TIMES } from "../lib/types";
+import type { PrayerName, PrayerEntry } from "../lib/types";
+import { PRAYER_LABELS, PRAYER_TIMES, SUNNAH_RATIBAH } from "../lib/types";
 
 interface PrayerRowProps {
   prayer: PrayerName;
-  status: PrayerStatus;
-  onToggle: () => void;
-  onMakeUp?: () => void;
+  entry: PrayerEntry;
+  onTapFard: () => void;
+  onTapSunnah?: () => void;
   compact?: boolean;
 }
 
-const STATUS_STYLES: Record<PrayerStatus, string> = {
-  done: "bg-emerald-500 text-white",
-  missed: "bg-red-100 text-red-600 border border-red-200",
-  made_up: "bg-blue-500 text-white",
-};
+function sunnahLabel(prayer: PrayerName): string | null {
+  const s = SUNNAH_RATIBAH[prayer];
+  if (!s) return null;
+  const parts: string[] = [];
+  if (s.before) parts.push(`${s.before} before`);
+  if (s.after) parts.push(`${s.after} after`);
+  return parts.join(", ");
+}
 
-const STATUS_ICONS: Record<PrayerStatus, string> = {
-  done: "✓",
-  missed: "✕",
-  made_up: "↻",
-};
+export function PrayerRow({ prayer, entry, onTapFard, onTapSunnah, compact }: PrayerRowProps) {
+  const hasSunnah = !!SUNNAH_RATIBAH[prayer];
 
-export function PrayerRow({ prayer, status, onToggle, onMakeUp, compact }: PrayerRowProps) {
   if (compact) {
     return (
       <button
-        onClick={onToggle}
-        className={`w-9 h-9 rounded-full text-sm font-bold flex items-center justify-center transition-all active:scale-90 ${STATUS_STYLES[status]}`}
-        title={`${PRAYER_LABELS[prayer]}: ${status}`}
+        onClick={onTapFard}
+        className={`w-9 h-9 rounded-full text-sm font-bold flex items-center justify-center transition-all active:scale-90 ${
+          entry.fard
+            ? "bg-emerald-500 text-white"
+            : "bg-gray-100 text-gray-300 border border-gray-200"
+        }`}
+        title={`${PRAYER_LABELS[prayer]}: ${entry.fard ? "done" : "not yet"}`}
       >
-        {STATUS_ICONS[status]}
+        {entry.fard ? "✓" : ""}
       </button>
     );
   }
@@ -37,23 +40,35 @@ export function PrayerRow({ prayer, status, onToggle, onMakeUp, compact }: Praye
   return (
     <div className="flex items-center justify-between py-3 px-1">
       <div className="flex flex-col">
-        <span className="font-semibold text-[15px]">{PRAYER_LABELS[prayer]}</span>
+        <span className="font-semibold text-[15px] text-gray-800">{PRAYER_LABELS[prayer]}</span>
         <span className="text-xs text-gray-400">{PRAYER_TIMES[prayer]}</span>
       </div>
       <div className="flex items-center gap-2">
-        {status === "missed" && onMakeUp && (
+        {/* Sunnah toggle */}
+        {hasSunnah && onTapSunnah && (
           <button
-            onClick={onMakeUp}
-            className="text-xs px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 font-medium hover:bg-blue-100 transition-colors"
+            onClick={onTapSunnah}
+            className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-all active:scale-95 ${
+              entry.sunnah
+                ? "bg-violet-100 text-violet-600 border border-violet-200"
+                : "bg-gray-50 text-gray-400 border border-gray-100"
+            }`}
+            title={`Sunnah: ${sunnahLabel(prayer)}`}
           >
-            Make up
+            {entry.sunnah ? "Sunnah ✓" : "Sunnah"}
           </button>
         )}
+
+        {/* Fard toggle */}
         <button
-          onClick={onToggle}
-          className={`w-10 h-10 rounded-xl text-sm font-bold flex items-center justify-center transition-all active:scale-90 ${STATUS_STYLES[status]}`}
+          onClick={onTapFard}
+          className={`w-11 h-11 rounded-xl text-base font-bold flex items-center justify-center transition-all active:scale-90 ${
+            entry.fard
+              ? "bg-emerald-500 text-white shadow-sm shadow-emerald-200"
+              : "bg-gray-100 text-gray-300 border border-gray-200"
+          }`}
         >
-          {STATUS_ICONS[status]}
+          {entry.fard ? "✓" : ""}
         </button>
       </div>
     </div>
