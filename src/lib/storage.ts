@@ -14,13 +14,20 @@ function emptyDay(date: string): DayRecord {
       maghrib: "missed",
       isha: "missed",
     },
+    extra: 0,
   };
 }
 
 function loadAll(): Record<string, DayRecord> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    // Migrate old records without `extra` field
+    for (const key of Object.keys(parsed)) {
+      if (parsed[key].extra === undefined) parsed[key].extra = 0;
+    }
+    return parsed;
   } catch {
     return {};
   }
@@ -39,7 +46,10 @@ export function getTrackingStartDate(): string {
 }
 
 export function formatDate(d: Date): string {
-  return d.toISOString().split("T")[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export function parseDate(s: string): Date {
@@ -83,7 +93,7 @@ export function setPrayerStatus(date: string, prayer: PrayerName, status: Prayer
   saveAll(data);
 }
 
-/** Toggle prayer through: missed → done → made_up → missed */
+/** Toggle prayer: missed → done → missed */
 export function cyclePrayerStatus(date: string, prayer: PrayerName): PrayerStatus {
   const day = getDay(date);
   const current = day.prayers[prayer];
@@ -101,12 +111,23 @@ export function markMadeUp(date: string, prayer: PrayerName) {
   setPrayerStatus(date, prayer, "made_up");
 }
 
+/** Set extra prayers count for a day. */
+export function setExtraPrayers(date: string, count: number) {
+  const data = loadAll();
+  if (!data[date]) {
+    data[date] = emptyDay(date);
+  }
+  data[date].extra = Math.max(0, count);
+  saveAll(data);
+}
+
 /** Get stats for a date range. */
 export function getStats(days: DayRecord[]) {
   let total = 0;
   let done = 0;
   let missed = 0;
   let madeUp = 0;
+  let extra = 0;
 
   for (const day of days) {
     for (const p of PRAYERS) {
@@ -116,21 +137,40 @@ export function getStats(days: DayRecord[]) {
       else if (s === "missed") missed++;
       else if (s === "made_up") madeUp++;
     }
+    extra += day.extra || 0;
   }
 
-  return { total, done, missed, madeUp, completionRate: total > 0 ? (done + madeUp) / total : 0 };
+  return {
+    total,
+    done,
+    missed,
+    madeUp,
+    extra,
+    completionRate: total > 0 ? (done + madeUp) / total : 0,
+  };
 }
 
-/** Get count of total missed prayers (not yet made up). */
-export function getMissedCount(): number {
+/**
+ * Get the qada debt: total missed prayers minus extra prayers credited.
+ * Extra prayers (nawafil) reduce the debt — they compensate oldest missed prayers.
+ */
+export function getQadaDebt(): { rawMissed: number; extraCredit: number; netDebt: number } {
   const days = getAllDays();
-  let count = 0;
+  let rawMissed = 0;
+  let extraCredit = 0;
+
   for (const day of days) {
     for (const p of PRAYERS) {
-      if (day.prayers[p] === "missed") count++;
+      if (day.prayers[p] === "missed") rawMissed++;
     }
+    extraCredit += day.extra || 0;
   }
-  return count;
+
+  return {
+    rawMissed,
+    extraCredit,
+    netDebt: Math.max(0, rawMissed - extraCredit),
+  };
 }
 
 /** Get the current week (Mon–Sun) days. */

@@ -4,12 +4,13 @@ import {
   getAllDays,
   cyclePrayerStatus,
   markMadeUp,
+  setExtraPrayers,
   getStats,
-  getMissedCount,
+  getQadaDebt,
   getCurrentWeekDays,
   formatDate,
 } from "../lib/storage";
-import type { DayRecord, PrayerName } from "../lib/types";
+import type { PrayerName } from "../lib/types";
 
 export function useTracker() {
   const [revision, setRevision] = useState(0);
@@ -19,7 +20,7 @@ export function useTracker() {
   const todayRecord = getDay(today);
   const allDays = getAllDays();
   const weekDays = getCurrentWeekDays();
-  const missedCount = getMissedCount();
+  const qadaDebt = getQadaDebt();
   const weekStats = getStats(weekDays);
   const allTimeStats = getStats(allDays);
 
@@ -33,6 +34,12 @@ export function useTracker() {
     bump();
   }, []);
 
+  const addExtra = useCallback((date: string, delta: number) => {
+    const day = getDay(date);
+    setExtraPrayers(date, (day.extra || 0) + delta);
+    bump();
+  }, []);
+
   // Force re-read on revision change
   void revision;
 
@@ -41,10 +48,11 @@ export function useTracker() {
     todayRecord,
     allDays,
     weekDays,
-    missedCount,
+    qadaDebt,
     weekStats,
     allTimeStats,
     toggle,
     makeUp,
+    addExtra,
   };
 }

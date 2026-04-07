@@ -6,6 +6,7 @@ export type PrayerStatus = "done" | "missed" | "made_up";
 export interface DayRecord {
   date: string; // YYYY-MM-DD
   prayers: Record<PrayerName, PrayerStatus>;
+  extra: number; // nawafil / extra prayers that count towards making up missed
 }
 
 export const PRAYER_LABELS: Record<PrayerName, string> = {

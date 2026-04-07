@@ -41,13 +41,18 @@ function App() {
       {/* Content */}
       <main className="max-w-md mx-auto px-4 pb-8 space-y-4">
         {/* Missed counter - always visible */}
-        <MissedCounter count={tracker.missedCount} />
+        <MissedCounter
+          rawMissed={tracker.qadaDebt.rawMissed}
+          extraCredit={tracker.qadaDebt.extraCredit}
+          netDebt={tracker.qadaDebt.netDebt}
+        />
 
         {tab === "today" && (
           <TodayCard
             record={tracker.todayRecord}
             onToggle={(prayer) => tracker.toggle(tracker.today, prayer)}
             onMakeUp={(prayer) => tracker.makeUp(tracker.today, prayer)}
+            onExtraChange={(delta) => tracker.addExtra(tracker.today, delta)}
           />
         )}
 
